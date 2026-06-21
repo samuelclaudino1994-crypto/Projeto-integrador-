@@ -20,7 +20,6 @@ public class OrdemServicoDAO {
         try (Connection conn = ConexaoJDBC.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Convertendo java.util.Date para java.sql.Date para o MySQL aceitar corretamente
             stmt.setDate(1, new java.sql.Date(os.getDataAbertura().getTime()));
             stmt.setString(2, os.getStatus());
             stmt.setString(3, os.getResponsavel());
@@ -37,35 +36,49 @@ public class OrdemServicoDAO {
         }
     }
 
-    // 2. CONSULTAR / LISTAR TODAS AS OSs (Read)
-    public List<OrdemServico> listarTodas() {
-        String sql = "SELECT * FROM ordem_servico";
+    // 2. MÉTODO GENÉRICO COM INNER JOIN (Com a melhoria do .trim())
+    public List<OrdemServico> listarOSPorStatus(String status) {
+        String sql = "SELECT os.*, c.nome, e.Modelo FROM ordem_servico os " +
+                     "INNER JOIN cliente c ON os.Cliente_idCliente = c.idCliente " +
+                     "INNER JOIN equipamentos e ON os.equipamentos_idequipamentos = e.idequipamentos";
+        
+        // Evita que strings contendo apenas espaços passem como um status válido
+        if (status != null && !status.trim().isEmpty()) {
+            sql += " WHERE os.status = ?";
+        }
+                     
         List<OrdemServico> lista = new ArrayList<>();
 
         try (Connection conn = ConexaoJDBC.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            if (status != null && !status.trim().isEmpty()) {
+                stmt.setString(1, status.toUpperCase().trim());
+            }
 
-            while (rs.next()) {
-                OrdemServico os = new OrdemServico();
-                os.setIdOs(rs.getInt("idOS"));
-                os.setDataAbertura(rs.getDate("dataAbertura"));
-                os.setDataEncerramento(rs.getDate("dataEncerramento"));
-                os.setStatus(rs.getString("status"));
-                os.setResponsavel(rs.getString("responsavel"));
-                os.setObservacao(rs.getString("observacao"));
-                os.setCusto(rs.getDouble("custo"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    OrdemServico os = new OrdemServico();
+                    os.setIdOs(rs.getInt("idOS"));
+                    os.setDataAbertura(rs.getDate("dataAbertura"));
+                    os.setDataEncerramento(rs.getDate("dataEncerramento"));
+                    os.setStatus(rs.getString("status"));
+                    os.setResponsavel(rs.getString("responsavel"));
+                    os.setObservacao(rs.getString("observacao"));
+                    os.setCusto(rs.getDouble("custo"));
 
-                // Vincula objetos básicos contendo apenas as chaves estrangeiras
-                Cliente c = new Cliente();
-                c.setIdCliente(rs.getInt("Cliente_idCliente"));
-                os.setCliente(c);
+                    Cliente c = new Cliente();
+                    c.setIdCliente(rs.getInt("Cliente_idCliente"));
+                    c.setNome(rs.getString("nome")); 
+                    os.setCliente(c);
 
-                Equipamento e = new Equipamento();
-                e.setIdEquipamento(rs.getInt("equipamentos_idequipamentos"));
-                os.setEquipamento(e);
+                    Equipamento e = new Equipamento();
+                    e.setIdEquipamento(rs.getInt("equipamentos_idequipamentos"));
+                    e.setModelo(rs.getString("Modelo"));
+                    os.setEquipamento(e);
 
-                lista.add(os);
+                    lista.add(os);
+                }
             }
         } catch (SQLException e) {
             System.out.println("❌ Erro ao listar Ordens de Serviço: " + e.getMessage());
@@ -73,33 +86,63 @@ public class OrdemServicoDAO {
         return lista;
     }
 
-    // 3. ATUALIZAR STATUS OU ENCERRAR (Update)
-    public void atualizarStatus(int idOS, String novoStatus, String observacao, double custo, java.util.Date dataEncerramento) {
-        String sql = "UPDATE ordem_servico SET status = ?, observacao = ?, custo = ?, dataEncerramento = ? WHERE idOS = ?";
+    // 3. LISTAR TODAS AS OS
+    public List<OrdemServico> listarOS() {
+        return listarOSPorStatus(null);
+    }
+
+    // 4. LISTAR APENAS OS ABERTAS
+    public List<OrdemServico> listarOSAbertas() {
+        return listarOSPorStatus("ABERTA");
+    }
+
+    // 5. LISTAR APENAS OS FINALIZADAS
+    public List<OrdemServico> listarOSFinalizadas() {
+        return listarOSPorStatus("FINALIZADA");
+    }
+
+    // 6. ATUALIZAR STATUS (Mantendo 100% em português brasileiro)
+    public void atualizarStatus(int idOS, String novoStatus, String novaObservacao) {
+        String sql = "UPDATE ordem_servico SET status = ?, observacao = ? WHERE idOS = ?";
 
         try (Connection conn = ConexaoJDBC.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, novoStatus);
-            stmt.setString(2, observacao);
-            stmt.setDouble(3, custo);
-            
-            if (dataEncerramento != null) {
-                stmt.setDate(4, new java.sql.Date(dataEncerramento.getTime()));
-            } else {
-                stmt.setNull(4, java.sql.Types.DATE);
-            }
-            
-            stmt.setInt(5, idOS);
+            stmt.setString(1, novoStatus.toUpperCase().trim());
+            stmt.setString(2, novaObservacao);
+            stmt.setInt(3, idOS);
 
             int linhas = stmt.executeUpdate();
             if (linhas > 0) {
-                System.out.println("🔄 Ordem de Serviço atualizada com sucesso!");
+                System.out.println("🔄 Status da OS nº " + idOS + " atualizado para " + novoStatus + "!");
             } else {
-                System.out.println("⚠️ Nenhuma OS encontrada com o ID informado.");
+                System.out.println("⚠️ Nenhuma OS encontrada com o ID " + idOS);
             }
         } catch (SQLException e) {
-            System.out.println("❌ Erro ao atualizar Ordem de Serviço: " + e.getMessage());
+            System.out.println("❌ Erro ao atualizar status da OS: " + e.getMessage());
+        }
+    }
+
+    // 7. ENCERRAR OS
+    public void encerrarOS(int idOS, double custoFinal, String observacaoFinal) {
+        String sql = "UPDATE ordem_servico SET status = 'FINALIZADA', dataEncerramento = ?, custo = ?, observacao = ? WHERE idOS = ? AND status <> 'FINALIZADA'";
+
+        try (Connection conn = ConexaoJDBC.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, new java.sql.Date(new java.util.Date().getTime()));
+            stmt.setDouble(2, custoFinal);
+            stmt.setString(3, observacaoFinal);
+            stmt.setInt(4, idOS);
+
+            int linhas = stmt.executeUpdate();
+            if (linhas > 0) {
+                System.out.println("🔒 OS nº " + idOS + " encerrada e finalizada com sucesso!");
+            } else {
+                System.out.println("⚠️ OS não encontrada ou já se encontra FINALIZADA.");
+            }
+        } catch (SQLException e) {
+            System.out.println("❌ Erro ao encerrar a OS: " + e.getMessage());
         }
     }
 }
