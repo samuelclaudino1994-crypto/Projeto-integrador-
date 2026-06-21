@@ -78,13 +78,14 @@ public class Main {
     }
 
     // ==========================================
-    // MENU EQUIPAMENTOS (Limpo, sem opções vazias)
+    // MENU EQUIPAMENTOS (Alterado para incluir Listagem)
     // ==========================================
     private static void menuEquipamentos() {
         int op;
         do {
             System.out.println("\n--- MENU EQUIPAMENTOS ---");
             System.out.println("1 - Cadastrar Equipamento");
+            System.out.println("2 - Listar Equipamentos");
             System.out.println("0 - Voltar");
             System.out.print("Escolha uma opção: ");
             op = lerInteiro();
@@ -101,6 +102,9 @@ public class Main {
                     
                     Cliente dono = new Cliente(); dono.setIdCliente(idClie); e.setCliente(dono);
                     equipamentoDao.salvar(e);
+                    break;
+                case 2:
+                    exibirTabelaEquipamentos(equipamentoDao.listarTodos());
                     break;
                 case 0: break;
                 default: System.out.println("⚠️ Opção inválida!");
@@ -150,7 +154,6 @@ public class Main {
         osDao.abrirOS(os);
     }
 
-    // Blindagem total contra inserção de texto inválido no Status
     private static void tratarAtualizacaoStatus() {
         System.out.print("Número da OS: "); 
         int idA = lerInteiro();
@@ -184,23 +187,25 @@ public class Main {
     }
 
     // ==========================================
-    // MENU RELATÓRIOS
+    // MENU RELATÓRIOS (Alterado para incluir listagem de Equipamentos)
     // ==========================================
     private static void menuRelatorios() {
         int op;
         do {
             System.out.println("\n--- MENU RELATÓRIOS ---");
             System.out.println("1 - Clientes cadastrados");
-            System.out.println("2 - OS Abertas");
-            System.out.println("3 - OS Finalizadas");
+            System.out.println("2 - Equipamentos cadastrados");
+            System.out.println("3 - OS Abertas");
+            System.out.println("4 - OS Finalizadas");
             System.out.println("0 - Voltar");
             System.out.print("Escolha uma opção: ");
             op = lerInteiro();
 
             switch (op) {
                 case 1: exibirTabelaClientes(clienteDao.listarTodos()); break;
-                case 2: exibirTabelaOS(osDao.listarOSAbertas()); break;
-                case 3: exibirTabelaOS(osDao.listarOSFinalizadas()); break;
+                case 2: exibirTabelaEquipamentos(equipamentoDao.listarTodos()); break;
+                case 3: exibirTabelaOS(osDao.listarOSAbertas()); break;
+                case 4: exibirTabelaOS(osDao.listarOSFinalizadas()); break;
                 case 0: break;
                 default: System.out.println("⚠️ Opção inválida!");
             }
@@ -240,6 +245,27 @@ public class Main {
             System.out.println("---------------------------------------------------------------------------------------");
             for (Cliente c : lista) {
                 System.out.printf("%-5d | %-25s | %-15s | %-25s%n", c.getIdCliente(), limitarTexto(c.getNome(), 25), c.getTelefone(), c.getEmail());
+            }
+        }
+        System.out.println("=======================================================================================");
+    }
+
+    // Adicionado método exclusivo para desenhar a tabela de equipamentos na tela
+    private static void exibirTabelaEquipamentos(List<Equipamento> lista) {
+        System.out.println("\n=======================================================================================");
+        if (lista == null || lista.isEmpty()) {
+            System.out.println("                     ⚠️ Nenhum equipamento cadastrado.                     ");
+        } else {
+            System.out.printf("%-8s | %-15s | %-15s | %-15s | %-20s%n", "ID EQUIP", "TIPO", "MARCA", "MODELO", "DONO");
+            System.out.println("---------------------------------------------------------------------------------------");
+            for (Equipamento e : lista) {
+                String nomeDono = (e.getCliente() != null) ? e.getCliente().getNome() : "Não Informado";
+                System.out.printf("%-8d | %-15s | %-15s | %-15s | %-20s%n", 
+                        e.getIdEquipamento(), 
+                        limitarTexto(e.getTipo(), 15), 
+                        limitarTexto(e.getMarca(), 15), 
+                        limitarTexto(e.getModelo(), 15), 
+                        limitarTexto(nomeDono, 20));
             }
         }
         System.out.println("=======================================================================================");
