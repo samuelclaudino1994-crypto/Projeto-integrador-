@@ -1,0 +1,27 @@
+# --- JAVA & COMPILAÇÃO ---
+*.class
+*.jar
+*.war
+*.ear
+bin/
+target/
+.metadata/
+
+# --- CONFIGURAÇÕES DE IDE (VS Code e Eclipse) ---
+.settings/
+.project
+.classpath
+.factorypath
+.vscode/
+
+# --- ARQUIVOS TEMPORÁRIOS E DO SISTEMA ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.tmp
+*.bak
+*.swp
+
+# --- BANCO DE DADOS (Opcional - caso queira manter o diretório limpo) ---
+# Se o seu Workbench gerar arquivos de log ou conexões locais na pasta:
+*.log
