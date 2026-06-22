@@ -16,7 +16,7 @@ O **Senac Solutions** é um sistema desenvolvido em Java para gerenciamento de c
 
 O projeto tem como objetivo automatizar o controle dos atendimentos técnicos, permitindo o cadastro de clientes, gerenciamento de equipamentos, abertura e acompanhamento de ordens de serviço e emissão de relatórios gerenciais.
 
-Desenvolvido como parte do **Projeto Integrador do programa Jovem Programador da Faculdade Senac Blumenau**, o sistema aplica conceitos de Programação Orientada a Objetos, persistência de dados com JDBC e banco de dados MySQL.
+Desenvolvido como parte do **Projeto Integrador do Programa Jovem Programador da Faculdade Senac Blumenau**, o sistema aplica conceitos de Programação Orientada a Objetos (POO), persistência de dados com JDBC e banco de dados MySQL.
 
 ---
 
@@ -36,7 +36,7 @@ O sistema permite:
 
 # 🛠 Tecnologias Utilizadas
 
-* Java
+* Java 17
 * Programação Orientada a Objetos (POO)
 * JDBC
 * MySQL
@@ -81,33 +81,15 @@ class OrdemServico{
     +String observacao
     +double custo
 }
-
-class StatusOS{
-    <<enum>>
-    ABERTA
-    EM_MANUTENCAO
-    FINALIZADA
-}
-
-OrdemServico --> StatusOS
 ```
 
 ---
 
 # 🗄 Modelo Entidade-Relacionamento (Banco de Dados)
 
-> Exportar o diagrama criado no MySQL Workbench para a pasta `docs` do projeto.
-
-```text
-docs/
-└── mer-senac-solutions.png
-```
-
-Após exportar a imagem:
-
-```md
-![Modelo Entidade Relacionamento](docs/mer-senac-solutions.png)
-```
+<p align="center">
+  <img src="docs/mer-senac-solutions.png" alt="MER Senac Solutions" width="900">
+</p>
 
 ### Relacionamentos
 
@@ -133,8 +115,7 @@ src/
 ├── br.com.senac.model
 │   ├── Cliente.java
 │   ├── Equipamento.java
-│   ├── OrdemServico.java
-│   └── StatusOS.java
+│   └── OrdemServico.java
 │
 └── br.com.senac.view
     └── Main.java
@@ -190,11 +171,11 @@ src/
 
 ---
 
-## Tabela Equipamentos
+## Tabela Equipamento
 
 | Campo             | Tipo        |
 | ----------------- | ----------- |
-| idequipamentos    | INT         |
+| idEquipamento     | INT         |
 | tipo              | VARCHAR(50) |
 | marca             | VARCHAR(50) |
 | modelo            | VARCHAR(50) |
@@ -204,19 +185,19 @@ src/
 
 ---
 
-## Tabela Ordem_Servico
+## Tabela OrdemServico
 
-| Campo                       | Tipo          |
-| --------------------------- | ------------- |
-| idOS                        | INT           |
-| dataAbertura                | DATE          |
-| dataEncerramento            | DATE          |
-| status                      | VARCHAR(30)   |
-| responsavel                 | VARCHAR(100)  |
-| observacao                  | TEXT          |
-| custo                       | DECIMAL(10,2) |
-| Cliente_idCliente           | INT           |
-| equipamentos_idequipamentos | INT           |
+| Campo                     | Tipo          |
+| ------------------------- | ------------- |
+| idOS                      | INT           |
+| dataAbertura              | DATE          |
+| dataEncerramento          | DATE          |
+| status                    | VARCHAR(30)   |
+| responsavel               | VARCHAR(100)  |
+| observacao                | TEXT          |
+| custo                     | DECIMAL(10,2) |
+| Cliente_idCliente         | INT           |
+| Equipamento_idEquipamento | INT           |
 
 ---
 
@@ -230,7 +211,7 @@ git clone https://github.com/samuelclaudino1994-crypto/Projeto-integrador-
 
 ## 2️⃣ Criar o Banco de Dados
 
-Execute o script SQL disponível no projeto.
+Execute o script SQL disponibilizado no projeto.
 
 ## 3️⃣ Configurar a Conexão
 
@@ -242,7 +223,7 @@ ConexaoJDBC.java
 
 Configure:
 
-* URL do banco
+* URL do banco de dados
 * Usuário
 * Senha
 
@@ -270,7 +251,7 @@ Main.java
 
 * Interface gráfica utilizando JavaFX
 * Dashboard gerencial
-* Exportação de relatórios PDF
+* Exportação de relatórios em PDF
 * Validação de CPF
 * Validação de e-mail
 * Controle de usuários
